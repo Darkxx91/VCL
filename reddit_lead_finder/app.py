@@ -24,12 +24,16 @@ class User(UserMixin):
 
 @login_manager.user_loader
 def load_user(user_id):
+    print(f"[DEBUG] load_user called with user_id: {user_id}")
     conn = get_db_connection()
     user_data = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
     conn.close()
     if user_data:
+        print(f"[DEBUG] User {user_data['username']} found in database.")
         return User(id=user_data['id'], username=user_data['username'])
-    return None
+    else:
+        print("[DEBUG] User not found in database.")
+        return None
 
 def get_db_connection():
     """Creates a database connection."""
