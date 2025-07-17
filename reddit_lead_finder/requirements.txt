@@ -1,0 +1,7 @@
+praw
+openai
+Flask
+Flask-Login
+Flask-WTF
+Werkzeug
+gunicorn
