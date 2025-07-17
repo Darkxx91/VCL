@@ -125,6 +125,8 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+# Set up the database immediately when the app is initialized.
+setup_database()
+
 if __name__ == '__main__':
-    setup_database()
     app.run(debug=True, host='0.0.0.0', port=8080)
