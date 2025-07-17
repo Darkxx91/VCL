@@ -140,44 +140,43 @@ def fetch_hot_posts(reddit, subreddit_name, limit=10):
         print(f"Could not fetch posts from r/{subreddit_name}. Error: {e}")
         return []
 
-def main():
-    """Main function to run the scraper."""
-    print("Initializing Reddit scraper...")
-    setup_database() # Set up the database at the start
-    reddit = initialize_reddit()
+def run_scraper():
+    """The main logic for scraping and analyzing Reddit posts."""
+    print("--- Running Scraper ---")
 
-    # Check if credentials are still placeholders
+    # Check for credentials at the start of the run
     if CLIENT_ID == "YOUR_CLIENT_ID" or CLIENT_SECRET == "YOUR_CLIENT_SECRET":
-        print("\nWARNING: Reddit API credentials are not set. The scraper will likely fail.")
-        return # Exit if no credentials
+        print("ERROR: Reddit API credentials are not configured.")
+        return {"status": "error", "message": "Reddit API credentials not set."}
 
-    if OPENAI_API_KEY == "YOUR_OPENAI_API_KEY":
-        print("\nWARNING: OpenAI API key is not set. The AI lead identification will be simulated.")
+    if not OPENAI_API_KEY or OPENAI_API_KEY == "YOUR_OPENAI_API_KEY":
+        print("WARNING: OpenAI API key not set. AI analysis will be simulated.")
 
-    print("\n--- Starting Lead Search ---")
+    reddit = initialize_reddit()
+    leads_found = 0
+
+    print("--- Starting Lead Search ---")
     for subreddit_name in TARGET_SUBREDDITS:
-        posts = fetch_hot_posts(reddit, subreddit_name, limit=5) # Limit to 5 for now to avoid rate limits
+        posts = fetch_hot_posts(reddit, subreddit_name, limit=10) # Increased limit slightly
         if posts:
-            print(f"\nAnalyzing posts in r/{subreddit_name}:")
+            print(f"Analyzing posts in r/{subreddit_name}:")
             for post in posts:
                 post_body = post.selftext if hasattr(post, 'selftext') else ""
+                if is_lead_material(post.title, post_body):
+                    save_lead(post)
+                    leads_found += 1
+                time.sleep(0.5) # API courtesy delay
 
-                is_lead = is_lead_material(post.title, post_body)
+    print(f"--- Scraper finished. Found {leads_found} new leads. ---")
+    return {"status": "success", "leads_found": leads_found}
 
-                if is_lead:
-                    lead_status = "POTENTIAL LEAD"
-                    save_lead(post) # Save the lead to the database
-                else:
-                    lead_status = "Not a lead"
 
-                print(f"  - [{lead_status}] [{post.score}] {post.title} ({post.shortlink})")
+def main():
+    """Main function to run the scraper from the command line."""
+    print("Initializing Reddit scraper for command-line execution...")
+    setup_database()
+    run_scraper()
 
-                # To be respectful of APIs, let's add a small delay
-                time.sleep(0.5)
-        else:
-            print(f"\nCould not fetch or no posts found for r/{subreddit_name}.")
-
-    print("\nScraper finished.")
 
 if __name__ == "__main__":
     main()

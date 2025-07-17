@@ -19,7 +19,32 @@
     </style>
 </head>
 <body>
-    <h1>B2B Leads from Reddit</h1>
+    <style>
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .btn { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; text-decoration: none; }
+        .btn:hover { background-color: #218838; }
+        .flash { padding: 1rem; margin: 1rem 0; border-radius: 4px; }
+        .flash.info { background-color: #e2f3fe; color: #0c5464; }
+        .flash.success { background-color: #d4edda; color: #155724; }
+        .flash.error { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>B2B Leads from Reddit</h1>
+        <form action="{{ url_for('trigger_scraper') }}" method="post" style="margin: 0;">
+            <button type="submit" class="btn">Run Scraper Now</button>
+        </form>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
     <table>
         <thead>
             <tr>
